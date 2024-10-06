@@ -11,7 +11,7 @@ const nextConfig = {
     // This is required for the experimental feature of pre-populating the cache with the initial data
     instrumentationHook: true,
   },
-  // output: "standalone",
+  output: "standalone",
 };
 
 module.exports = nextConfig;
