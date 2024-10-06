@@ -3,13 +3,15 @@ import createLruHandler from '@neshca/cache-handler/local-lru';
 import createRedisHandler from '@neshca/cache-handler/redis-stack';
 import { createClient } from 'redis';
 
+const address = '10.46.150.171'
+
 CacheHandler.onCreation(async () => {
   let client;
 
   try {
     // Create a Redis client.
     client = createClient({
-      url: process.env.REDIS_URL ?? 'redis://localhost:6379',
+      url: `redis://:${REDIS_AUTH_STRING}@${address}:6379`
     });
 
     // Redis won't work without error handling. https://github.com/redis/node-redis?tab=readme-ov-file#events
