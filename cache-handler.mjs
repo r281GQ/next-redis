@@ -17,7 +17,7 @@ import { Logging } from '@google-cloud/logging'
 const logging = new Logging({ projectId: 'next-redis' });
 
 // Selects the log to write to
-const logger = logging.log('log');
+const logger = console
 
 
 
