@@ -10,14 +10,16 @@ import { LoggingWinston } from '@google-cloud/logging-winston';
 const loggingWinston = new LoggingWinston();
 // Create a Winston logger that streams to Cloud Logging
 // Logs will be written to: "projects/YOUR_PROJECT_ID/logs/winston_log"
-const logger = winston.createLogger({
-  level: 'info',
-  transports: [
-    new winston.transports.Console(),
-    // Add Cloud Logging
-    loggingWinston,
-  ],
-});
+
+import { Logging } from '@google-cloud/logging'
+
+// const logger = winston.createLogger({
+const logging = new Logging({ projectId: 'next-redis' });
+
+// Selects the log to write to
+const logger = logging.log('log');
+
+
 
 
 const address = '10.46.150.171'
