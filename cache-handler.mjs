@@ -2,6 +2,23 @@ import { CacheHandler } from '@neshca/cache-handler';
 import createLruHandler from '@neshca/cache-handler/local-lru';
 import createRedisHandler from '@neshca/cache-handler/redis-stack';
 import { createClient } from 'redis';
+import winston from 'winston';
+
+// Imports the Google Cloud client library for Winston
+import { LoggingWinston } from '@google-cloud/logging-winston';
+
+const loggingWinston = new LoggingWinston();
+// Create a Winston logger that streams to Cloud Logging
+// Logs will be written to: "projects/YOUR_PROJECT_ID/logs/winston_log"
+const logger = winston.createLogger({
+  level: 'info',
+  transports: [
+    new winston.transports.Console(),
+    // Add Cloud Logging
+    loggingWinston,
+  ],
+});
+
 
 const address = '10.46.150.171'
 
@@ -9,43 +26,47 @@ CacheHandler.onCreation(async () => {
   let client;
 
   try {
-    // Create a Redis client.
-    client = createClient({
-      url: `redis://:${REDIS_AUTH_STRING}@${address}:6379`
-    });
+    if (process.env.REDIS_AUTH_STRING) {
 
-    // Redis won't work without error handling. https://github.com/redis/node-redis?tab=readme-ov-file#events
-    client.on('error', (error) => {
-      if (typeof process.env.NEXT_PRIVATE_DEBUG_CACHE !== 'undefined') {
-        // Use logging with caution in production. Redis will flood your logs. Hide it behind a flag.
-        console.error('Redis client error:', error);
-      }
-    });
+      // Create a Redis client.
+      client = createClient({
+        url: `redis://:${process.env.REDIS_AUTH_STRING}@${address}:6379`
+      });
+
+      // Redis won't work without error handling. https://github.com/redis/node-redis?tab=readme-ov-file#events
+      client.on('error', (error) => {
+        if (typeof process.env.NEXT_PRIVATE_DEBUG_CACHE !== 'undefined') {
+          // Use logging with caution in production. Redis will flood your logs. Hide it behind a flag.
+          logger.error('Redis client error:', error);
+        }
+      });
+    }
   } catch (error) {
-    console.warn('Failed to create Redis client:', error);
+    logger.warn('Failed to create Redis client:', error);
   }
+
 
   if (client) {
     try {
-      console.info('Connecting Redis client...');
+      logger.info('Connecting Redis client...');
 
       // Wait for the client to connect.
       // Caveat: This will block the server from starting until the client is connected.
       // And there is no timeout. Make your own timeout if needed.
       await client.connect();
-      console.info('Redis client connected.');
+      logger.info('Redis client connected.');
     } catch (error) {
-      console.warn('Failed to connect Redis client:', error);
+      logger.warn('Failed to connect Redis client:', error);
 
-      console.warn('Disconnecting the Redis client...');
+      logger.warn('Disconnecting the Redis client...');
       // Try to disconnect the client to stop it from reconnecting.
       client
         .disconnect()
         .then(() => {
-          console.info('Redis client disconnected.');
+          logger.info('Redis client disconnected.');
         })
         .catch(() => {
-          console.warn('Failed to quit the Redis client after failing to connect.');
+          logger.warn('Failed to quit the Redis client after failing to connect.');
         });
     }
   }
@@ -53,8 +74,6 @@ CacheHandler.onCreation(async () => {
   /** @type {import("@neshca/cache-handler").Handler | null} */
   let handler;
 
-  console.log({ client })
-  console.log({ isReady: client.isReady })
 
   if (client?.isReady) {
     // Create the `redis-stack` Handler if the client is available and connected.
