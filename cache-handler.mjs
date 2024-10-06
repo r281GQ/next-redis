@@ -24,6 +24,7 @@ const address = '10.46.150.171'
 
 CacheHandler.onCreation(async () => {
   let client;
+  logger.info('creation')
 
   try {
     if (process.env.REDIS_AUTH_STRING) {
@@ -35,10 +36,8 @@ CacheHandler.onCreation(async () => {
 
       // Redis won't work without error handling. https://github.com/redis/node-redis?tab=readme-ov-file#events
       client.on('error', (error) => {
-        if (typeof process.env.NEXT_PRIVATE_DEBUG_CACHE !== 'undefined') {
-          // Use logging with caution in production. Redis will flood your logs. Hide it behind a flag.
-          logger.error('Redis client error:', error);
-        }
+        // Use logging with caution in production. Redis will flood your logs. Hide it behind a flag.
+        logger.error('Redis client error:', error);
       });
     }
   } catch (error) {
