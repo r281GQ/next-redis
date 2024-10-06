@@ -23,48 +23,47 @@ const address = '10.46.150.171'
 
 CacheHandler.onCreation(async () => {
   let client;
-  logger.info('creation')
+  console.log('creation')
 
   try {
-    if (process.env.REDIS_AUTH_STRING) {
 
-      // Create a Redis client.
-      client = createClient({
-        url: `redis://:${process.env.REDIS_AUTH_STRING}@${address}:6379`
-      });
+    // Create a Redis client.
+    client = createClient({
+      url: `redis://:${process.env.REDIS_AUTH_STRING}@${address}:6379`
+      // url: `redis://${address}:6379`
+    });
 
-      // Redis won't work without error handling. https://github.com/redis/node-redis?tab=readme-ov-file#events
-      client.on('error', (error) => {
-        // Use logging with caution in production. Redis will flood your logs. Hide it behind a flag.
-        logger.error('Redis client error:', error);
-      });
-    }
+    // Redis won't work without error handling. https://github.com/redis/node-redis?tab=readme-ov-file#events
+    client.on('error', (error) => {
+      // Use logging with caution in production. Redis will flood your logs. Hide it behind a flag.
+      console.log('Redis client error:', error);
+    });
   } catch (error) {
-    logger.warn('Failed to create Redis client:', error);
+    console.log('Failed to create Redis client:', error);
   }
 
 
   if (client) {
     try {
-      logger.info('Connecting Redis client...');
+      console.log('Connecting Redis client...');
 
       // Wait for the client to connect.
       // Caveat: This will block the server from starting until the client is connected.
       // And there is no timeout. Make your own timeout if needed.
       await client.connect();
-      logger.info('Redis client connected.');
+      console.log('Redis client connected.');
     } catch (error) {
-      logger.warn('Failed to connect Redis client:', error);
+      console.log('Failed to connect Redis client:', error);
 
-      logger.warn('Disconnecting the Redis client...');
+      console.warn('Disconnecting the Redis client...');
       // Try to disconnect the client to stop it from reconnecting.
       client
         .disconnect()
         .then(() => {
-          logger.info('Redis client disconnected.');
+          console.log('Redis client disconnected.');
         })
         .catch(() => {
-          logger.warn('Failed to quit the Redis client after failing to connect.');
+          console.log('Failed to quit the Redis client after failing to connect.');
         });
     }
   }
@@ -84,7 +83,7 @@ CacheHandler.onCreation(async () => {
     // Fallback to LRU handler if Redis client is not available.
     // The application will still work, but the cache will be in memory only and not shared.
     handler = createLruHandler();
-    console.warn('Falling back to LRU handler because Redis client is not available.');
+    console.log('Falling back to LRU handler because Redis client is not available.');
   }
 
   return {
