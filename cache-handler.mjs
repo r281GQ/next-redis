@@ -29,7 +29,7 @@ CacheHandler.onCreation(async () => {
   logger.info('creation')
 
   try {
-    if (process.env.REDIS_AUTH_STRING) {
+    if (process.env.REDIS_AUTH_STRING && (PHASE_PRODUCTION_BUILD !== process.env.NEXT_PHASE)) {
 
       // Create a Redis client.
       client = createClient({
