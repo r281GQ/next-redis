@@ -5,11 +5,14 @@ const { PHASE_DEVELOPMENT_SERVER, PHASE_PRODUCTION_BUILD } = require('next/const
 
 module.exports = (phase, { defaultConfig }) => {
   if (phase === PHASE_DEVELOPMENT_SERVER || phase === PHASE_PRODUCTION_BUILD) {
+    console.log('build')
     return {
       /* development / or build time, only config options here */
+      output: "standalone",
     }
   }
 
+  console.log('run')
   return {
     /* config options for all phases except development here */
     cacheHandler: process.env.NODE_ENV === 'production' ? require.resolve('./cache-handler.mjs') : undefined,

@@ -19,9 +19,6 @@ const logging = new Logging({ projectId: 'next-redis' });
 // Selects the log to write to
 const logger = console
 
-
-
-
 const address = '10.46.150.171'
 
 CacheHandler.onCreation(async () => {
